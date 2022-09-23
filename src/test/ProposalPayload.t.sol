@@ -5,9 +5,11 @@ pragma solidity ^0.8.0;
 import "@forge-std/Test.sol";
 
 // contract dependencies
+import "../external/aave/IAaveIncentivesController.sol";
 import {IAaveGovernanceV2} from "../external/aave/IAaveGovernanceV2.sol";
 import {ProposalPayload} from "../ProposalPayload.sol";
 import {DeployMainnetProposal} from "../../script/DeployMainnetProposal.s.sol";
+import "@openzeppelin/token/ERC20/IERC20.sol";
 
 contract ProposalPayloadTest is Test {
     IAaveGovernanceV2 private aaveGovernanceV2 = IAaveGovernanceV2(0xEC568fffba86c094cf06b22134B23074DFE2252c);
@@ -17,6 +19,10 @@ contract ProposalPayloadTest is Test {
     address private proposalPayloadAddress;
 
     uint256 private proposalId;
+
+    ProposalPayload proposalPayload;
+
+    IERC20 STK_AAVE = IERC20(0x4da27a545c0c5B758a6BA100e3a049001de870f5);
 
     function setUp() public {
         // To fork at a specific block: vm.createSelectFork(vm.rpcUrl("mainnet", BLOCK_NUMBER));
@@ -39,6 +45,8 @@ contract ProposalPayloadTest is Test {
         _skipVotingPeriod();
         _queueProposal();
         _skipQueuePeriod();
+
+        
     }
 
     function testSetup() public {
@@ -50,9 +58,24 @@ contract ProposalPayloadTest is Test {
     }
 
     function testExecute() public {
+        // grant correct permissions 
+        vm.startPrank(0xEE56e2B3D491590B5b31738cC34d5232F378a8D5);
+        IAaveIncentivesController(proposalPayload.INCENTIVE_CONTROLLER()).setClaimer(proposalPayload.BALANCER_DAO(), 0xEE56e2B3D491590B5b31738cC34d5232F378a8D5);
+        vm.stopPrank();
+
+        uint256 original_stkaave_balance = STK_AAVE.balanceOf(proposalPayload.BALANCER_MULTISIG());
+        console.log("Original STKAAVE balance: %s", original_stkaave_balance);
         // Pre-execution assertations
         _executeProposal();
         // Post-execution assertations
+        uint256 new_stkaave_balance = STK_AAVE.balanceOf(proposalPayload.BALANCER_MULTISIG());
+        console.log("New STKAAVE balance: %s", new_stkaave_balance);
+        assert(new_stkaave_balance > original_stkaave_balance);
+    }
+
+    function testClaimerUnset() public {
+        vm.expectRevert(bytes("Contract not set as claimer"));
+        _executeProposal();
     }
 
     function _executeProposal() public {
@@ -69,7 +92,7 @@ contract ProposalPayloadTest is Test {
     /*******************************************************************************/
 
     function _createProposal() public {
-        ProposalPayload proposalPayload = new ProposalPayload();
+        proposalPayload = new ProposalPayload();
         proposalPayloadAddress = address(proposalPayload);
 
         vm.prank(aaveWhales[0]);
