@@ -18,7 +18,7 @@ contract StkAaveRetrieval {
     address public constant BALANCER_DAO = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
 
     /// @dev this is the address of the Aave Incentives Controller, which manages and stores the claimers
-    address public constant INCENTIVE_CONTROLLER = 0xd784927Ff2f95ba542BfC824c8a8a98F3495f6b5;
+    address public constant INCENTIVES_CONTROLLER = 0xd784927Ff2f95ba542BfC824c8a8a98F3495f6b5;
 
     /// @dev these are the tokens which have accrued LM rewards
     address public constant WRAPPED_ADAI = 0x02d60b84491589974263d922D9cC7a3152618Ef6;
@@ -31,7 +31,7 @@ contract StkAaveRetrieval {
     function retrieve() external {
         require(msg.sender == BALANCER_MULTISIG, "Only Balancer Multisig");
         require(
-            IAaveIncentivesController(INCENTIVE_CONTROLLER).getClaimer(BALANCER_DAO) == address(this),
+            IAaveIncentivesController(INCENTIVES_CONTROLLER).getClaimer(BALANCER_DAO) == address(this),
             "Contract not set as claimer"
         );
         for (uint256 i = 0; i < WRAPPED_TOKENS.length; i++) {

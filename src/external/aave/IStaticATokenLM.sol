@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-// relevant function from https://etherscan.io/address/0x1dc16f168b0a2bb3fbda0fe1a1787f8b22c0aed8#code
+// relevant functiona from https://etherscan.io/address/0x1dc16f168b0a2bb3fbda0fe1a1787f8b22c0aed8#code
 
 interface IStaticATokenLM {
-     /**
+  /**
    * @notice Claim rewards on behalf of a user and send them to a receiver
    * @dev Only callable by if sender is onBehalfOf or sender is approved claimer
    * @param onBehalfOf The address to claim on behalf of
@@ -16,4 +16,11 @@ interface IStaticATokenLM {
     address receiver,
     bool forceUpdate
   ) external;
+
+  /**
+   * @notice The unclaimed rewards for a user in WAD
+   * @param user The address of the user
+   * @return The unclaimed amount of rewards in WAD
+   */
+  function getUnclaimedRewards(address user) external view returns (uint256);
 }

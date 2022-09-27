@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "@forge-std/Test.sol";
 
 // contract dependencies
+import "../external/aave/IStaticATokenLM.sol";
 import "../external/aave/IAaveIncentivesController.sol";
 import {IAaveGovernanceV2} from "../external/aave/IAaveGovernanceV2.sol";
 import {StkAaveRetrieval} from "../StkAaveRetrieval.sol";
@@ -26,6 +27,14 @@ contract StkAaveRetrievalE2ETest is Test {
 
     IERC20 STK_AAVE = IERC20(0x4da27a545c0c5B758a6BA100e3a049001de870f5);
 
+    address incentivesControllerAddr;
+    address balancerDAO; 
+    address balancerMultisig;
+
+    IStaticATokenLM wrapped_aDAI;
+    IStaticATokenLM wrapped_aUSDC;
+    IStaticATokenLM wrapped_aUSDT;
+
     function setUp() public {
         // To fork at a specific block: vm.createSelectFork(vm.rpcUrl("mainnet", BLOCK_NUMBER));
         vm.createSelectFork(vm.rpcUrl("mainnet"));
@@ -39,6 +48,13 @@ contract StkAaveRetrievalE2ETest is Test {
         aaveWhales.push(0x2FAF487A4414Fe77e2327F0bf4AE2a264a776AD2);
 
         stkAaveRetrieval = new StkAaveRetrieval();
+        incentivesControllerAddr = stkAaveRetrieval.INCENTIVES_CONTROLLER();
+        balancerDAO = stkAaveRetrieval.BALANCER_DAO();
+        balancerMultisig = stkAaveRetrieval.BALANCER_MULTISIG();
+        wrapped_aDAI = IStaticATokenLM(stkAaveRetrieval.WRAPPED_ADAI());
+        wrapped_aUSDC = IStaticATokenLM(stkAaveRetrieval.WRAPPED_AUSDC());
+        wrapped_aUSDT = IStaticATokenLM(stkAaveRetrieval.WRAPPED_AUSDT());
+
 
         // create proposal is configured to deploy a Payload contract and call execute() as a delegatecall
         _createProposal(stkAaveRetrieval);
@@ -58,43 +74,59 @@ contract StkAaveRetrievalE2ETest is Test {
         assertEq(uint256(state), uint256(IAaveGovernanceV2.ProposalState.Queued), "PROPOSAL_NOT_IN_EXPECTED_STATE");
     }
 
-    // TODO: Uncomment and complete test
-    // function testClaimerUnsetPreProposal() public {
-    //     // Mock as Balancer Multisig
-    //     vm.expectRevert(bytes("Contract not set as claimer"));
-    //     // Call retrieve() on StkAaveRetrieval contract without the Proposal being executed
-    // }
+    function testClaimerUnsetPreProposal() public {    
+        // Call retrieve() on StkAaveRetrieval contract as Balancer multisig without the Proposal being executed
+        vm.prank(balancerMultisig);
+        vm.expectRevert(bytes("Contract not set as claimer"));
+        stkAaveRetrieval.retrieve();
+        
+    }
 
-    // TODO: Uncomment and complete test
-    // function testRetrieveNotBalancerMultisigPreProposal() public {
-    //     // Mock as address that's not Balancer Multisig
-    //     vm.expectRevert(bytes("Only Balancer Multisig"));
-    //     // Call retrieve() on StkAaveRetrieval contract without the Proposal being executed
-    // }
+    function testRetrieveNotBalancerMultisigPreProposal() public {
+        // Call retrieve() on StkAaveRetrieval contract without the Proposal being executed
+        // the msg.sender will be this contract, which is NOT the balancer multisig
+        _executeProposal();
+        vm.expectRevert(bytes("Only Balancer Multisig"));
+        stkAaveRetrieval.retrieve();
+    }
 
     function testExecute() public {
-        // Pre-execution assertations: Like ensuring that the claimer has not been set as
+        // check that originally claimer is unset, then is correctly set to retrieval contract
+        IAaveIncentivesController incentivesController = IAaveIncentivesController(incentivesControllerAddr);
+        assertEq(incentivesController.getClaimer(balancerDAO), address(0), "CLAIMER_NOT_ZERO");
         _executeProposal();
-        // Post-execution assertations: Like checking if the claimer has been set as StkAaveRetrival contract
+        assertEq(incentivesController.getClaimer(balancerDAO), address(stkAaveRetrieval), "CLAIMER_NOT_RETRIEVAL_CONTRACT");
     }
 
     function testRetrievePostProposal() public {
         _executeProposal();
 
-        // Pre-retrieve assertions: Like exact stkAAVE balances before retrieval and any other balances affected
+        // check stkAaveBalance of balancermultisig is zero 
+        assertEq(STK_AAVE.balanceOf(balancerMultisig), 0, "BALANCER_MULTISIG_STK_AAVE_BALANCE_NOT_ZERO");
+        
+        // check initial aToken reward balances of Balancer DAO
+        uint256 expected_balance_ADAI = 507223394753535214703;
+        uint256 expected_balance_AUSDC = 601800814685127542984;
+        uint256 expected_balance_AUSDT = 390825845735555687901;
+        assertEq(wrapped_aDAI.getUnclaimedRewards(balancerDAO), expected_balance_ADAI, "INCORRECT_WRAPPED_ADAI_REWARDS_INITIAL_BALANCE");
+        assertEq(wrapped_aUSDC.getUnclaimedRewards(balancerDAO), expected_balance_AUSDC, "INCORRECT_WRAPPED_AUSDC_REWARDS_INITIAL_BALANCE");
+        assertEq(wrapped_aUSDT.getUnclaimedRewards(balancerDAO), expected_balance_AUSDT, "INCORRECT_WRAPPED_AUSDT_REWARDS_INITIAL_BALANCE");
 
         // Mock as Balancer Multisig and call retrieve() on StkAaveRetrieval contract
+        vm.prank(balancerMultisig);
+        stkAaveRetrieval.retrieve();
+        
+        // check that stkAave balance is correct now 
+        uint256 balancerDAOStkAAVEBalance = STK_AAVE.balanceOf(balancerMultisig);
+        uint256 expectedStkAaveBalance = 1499850055174218445588;
+        assertEq(balancerDAOStkAAVEBalance, expectedStkAaveBalance, "BALANCER_MULTISIG_STK_AAVE_BALANCE_NOT_ZERO");
 
-        // Post-retrieve assertions: Like exact stkAAVE balances after retrieval and any other balances affected
+        // check final aToken reward balances of Balancer DAO - all should be zero
+        assertEq(wrapped_aDAI.getUnclaimedRewards(balancerDAO), 0, "INCORRECT_WRAPPED_ADAI_REWARDS_FINAL_BALANCE");
+        assertEq(wrapped_aUSDC.getUnclaimedRewards(balancerDAO), 0, "INCORRECT_WRAPPED_AUSDC_REWARDS_FINAL_BALANCE");
+        assertEq(wrapped_aUSDT.getUnclaimedRewards(balancerDAO), 0, "INCORRECT_WRAPPED_AUSDT_REWARDS_FINAL_BALANCE");
     }
 
-    // TODO: Uncomment and complete test
-    // function testRetrieveNotBalancerMultisigPostProposal() public {
-    //     _executeProposal();
-    //     // Mock as address that's not Balancer Multisig
-    //     vm.expectRevert(bytes("Only Balancer Multisig"));
-    //     // Call retrieve() on StkAaveRetrieval contract post Proposal being executed
-    // }
 
     function _executeProposal() public {
         // execute proposal
