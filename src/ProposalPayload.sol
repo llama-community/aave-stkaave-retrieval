@@ -5,8 +5,8 @@ import "./external/aave/IAaveIncentivesController.sol";
 import {StkAaveRetrieval} from "./StkAaveRetrieval.sol";
 
 /**
- * @title Proposal Payload to be executed by AAVE Governance
- * @author Dan Hepworth (djh58)
+ * @title Proposal Payload to Authorize Balancer Multisig to claim stkAave on behalf of Balancer DAO
+ * @author Llama
  * @notice This payload sets the StkAaveRetrieval contract as the claimer on behalf of 0xBA12222222228d8Ba445958a75a0704d566BF2C8
  * Governance Forum Post: https://governance.aave.com/t/arc-whitelist-balancer-s-liquidity-mining-claim/9724
  * Snapshot: TBD

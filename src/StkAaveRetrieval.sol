@@ -5,10 +5,9 @@ import "./external/aave/IStaticATokenLM.sol";
 import "./external/aave/IAaveIncentivesController.sol";
 
 /// @title StkAaveRetrieval
-/// @author Dan Hepworth (djh58)
+/// @author Llama
 /// @notice This contract is used to claim stkAave rewards on behalf of the Balancer DAO contract and send those funds to their multisig
 /// @notice Aave proposal to whitelist this contract: https://governance.aave.com/t/arc-whitelist-balancer-s-liquidity-mining-claim/9724
-/// @notice Balancer proposal: TBD (will be linked here)
 /// @dev The Balancer Multisig should call retrieve
 contract StkAaveRetrieval {
     /// @dev this is msg.sender
