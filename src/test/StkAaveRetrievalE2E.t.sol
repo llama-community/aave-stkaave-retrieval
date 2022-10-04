@@ -93,15 +93,14 @@ contract StkAaveRetrievalE2ETest is Test {
         assertEq(STK_AAVE.balanceOf(balancerMultisig), 0, "BALANCER_MULTISIG_STK_AAVE_BALANCE_NOT_ZERO");
 
         // check initial aToken reward balances of Balancer DAO
-        uint256 before_balance_ADAI = wrappedADAI.getUnclaimedRewards(balancerDAO);
-        uint256 before_balance_AUSDC = wrappedAUSDC.getUnclaimedRewards(balancerDAO);
-        uint256 before_balance_AUSDT = wrappedAUSDT.getUnclaimedRewards(balancerDAO);
-        assertTrue(before_balance_ADAI > 0, "ZERO_wrappedADAI_REWARDS_INITIAL_BALANCE");
-        assertTrue(before_balance_AUSDC > 0, "ZERO_wrappedAUSDC_REWARDS_INITIAL_BALANCE");
-        assertTrue(before_balance_AUSDT > 0, "ZERO_wrappedAUSDT_REWARDS_INITIAL_BALANCE");
+        uint256 beforeBalanceADAI = wrappedADAI.getUnclaimedRewards(balancerDAO);
+        uint256 beforeBalanceAUSDC = wrappedAUSDC.getUnclaimedRewards(balancerDAO);
+        uint256 beforeBalanceAUSDT = wrappedAUSDT.getUnclaimedRewards(balancerDAO);
+        assertTrue(beforeBalanceADAI > 0, "ZERO_wrappedADAI_REWARDS_INITIAL_BALANCE");
+        assertTrue(beforeBalanceAUSDC > 0, "ZERO_wrappedAUSDC_REWARDS_INITIAL_BALANCE");
+        assertTrue(beforeBalanceAUSDT > 0, "ZERO_wrappedAUSDT_REWARDS_INITIAL_BALANCE");
 
-        uint256 expectedStkAAVEBalance = before_balance_ADAI + before_balance_AUSDC + before_balance_AUSDT;
-        uint256 beforeStkAAVEBalance = STK_AAVE.balanceOf(balancerMultisig);
+        uint256 expectedStkAAVEBalance = beforeBalanceADAI + beforeBalanceAUSDC + beforeBalanceAUSDT;
         // Mock as Balancer Multisig and call retrieve() on StkAaveRetrieval contract
         vm.prank(balancerMultisig);
         stkAaveRetrieval.retrieve();
