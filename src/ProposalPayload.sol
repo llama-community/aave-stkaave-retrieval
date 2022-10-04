@@ -9,7 +9,7 @@ import {StkAaveRetrieval} from "./StkAaveRetrieval.sol";
  * @author Llama
  * @notice This payload sets the StkAaveRetrieval contract as the claimer on behalf of 0xBA12222222228d8Ba445958a75a0704d566BF2C8
  * Governance Forum Post: https://governance.aave.com/t/arc-whitelist-balancer-s-liquidity-mining-claim/9724
- * Snapshot: TBD
+ * Snapshot: https://snapshot.org/#/aave.eth/proposal/0xdaa660ea59f8678748d6f133d7d7ed70b941798aa9a0044a16a1285d09e26bf5
  */
 contract ProposalPayload {
     /// @dev this is the address we're claiming on behalf of
