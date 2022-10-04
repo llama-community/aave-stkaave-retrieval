@@ -1,12 +1,11 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: AGPL-3.0-only
+pragma solidity ^0.8.15;
 
 import "@forge-std/console.sol";
 import {Script} from "@forge-std/Script.sol";
 import {AaveGovernanceV2, IExecutorWithTimelock} from "@aave-address-book/AaveGovernanceV2.sol";
-library DeployMainnetProposal {
-    
 
+library DeployMainnetProposal {
     function _deployMainnetProposal(address payload, bytes32 ipfsHash) internal returns (uint256 proposalId) {
         require(payload != address(0), "ERROR: PAYLOAD can't be address(0)");
         require(ipfsHash != bytes32(0), "ERROR: IPFS_HASH can't be bytes32(0)");

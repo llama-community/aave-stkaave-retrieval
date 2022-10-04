@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.15;
 
 // testing libraries
 import "@forge-std/Test.sol";
@@ -21,7 +21,7 @@ contract StkAaveRetrievalE2ETest is Test {
 
     StkAaveRetrieval private stkAaveRetrieval;
 
-    IERC20 STK_AAVE = IERC20(0x4da27a545c0c5B758a6BA100e3a049001de870f5);
+    IERC20 public constant STK_AAVE = IERC20(0x4da27a545c0c5B758a6BA100e3a049001de870f5);
 
     address public incentivesControllerAddr;
     address public balancerDAO;
@@ -42,6 +42,7 @@ contract StkAaveRetrievalE2ETest is Test {
         wrappedADAI = IStaticATokenLM(stkAaveRetrieval.WRAPPED_ADAI());
         wrappedAUSDC = IStaticATokenLM(stkAaveRetrieval.WRAPPED_AUSDC());
         wrappedAUSDT = IStaticATokenLM(stkAaveRetrieval.WRAPPED_AUSDT());
+
         // Deploy Payload
         ProposalPayload proposalPayload = new ProposalPayload(stkAaveRetrieval);
 
