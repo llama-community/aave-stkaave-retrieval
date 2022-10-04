@@ -20,7 +20,6 @@ contract StkAaveRetrievalE2ETest is Test {
     uint256 public proposalId;
 
     StkAaveRetrieval private stkAaveRetrieval;
-    ProposalPayload private proposalPayload;
 
     IERC20 STK_AAVE = IERC20(0x4da27a545c0c5B758a6BA100e3a049001de870f5);
 
@@ -28,9 +27,9 @@ contract StkAaveRetrievalE2ETest is Test {
     address public balancerDAO;
     address public balancerMultisig;
 
-    IStaticATokenLM public wrapped_aDAI;
-    IStaticATokenLM public wrapped_aUSDC;
-    IStaticATokenLM public wrapped_aUSDT;
+    IStaticATokenLM public wrappedADAI;
+    IStaticATokenLM public wrappedAUSDC;
+    IStaticATokenLM public wrappedAUSDT;
 
     function setUp() public {
         // To fork at a specific block: vm.createSelectFork(vm.rpcUrl("mainnet", BLOCK_NUMBER));
@@ -40,9 +39,9 @@ contract StkAaveRetrievalE2ETest is Test {
         incentivesControllerAddr = stkAaveRetrieval.INCENTIVES_CONTROLLER();
         balancerDAO = stkAaveRetrieval.BALANCER_DAO();
         balancerMultisig = stkAaveRetrieval.BALANCER_MULTISIG();
-        wrapped_aDAI = IStaticATokenLM(stkAaveRetrieval.WRAPPED_ADAI());
-        wrapped_aUSDC = IStaticATokenLM(stkAaveRetrieval.WRAPPED_AUSDC());
-        wrapped_aUSDT = IStaticATokenLM(stkAaveRetrieval.WRAPPED_AUSDT());
+        wrappedADAI = IStaticATokenLM(stkAaveRetrieval.WRAPPED_ADAI());
+        wrappedAUSDC = IStaticATokenLM(stkAaveRetrieval.WRAPPED_AUSDC());
+        wrappedAUSDT = IStaticATokenLM(stkAaveRetrieval.WRAPPED_AUSDT());
         // Deploy Payload
         ProposalPayload proposalPayload = new ProposalPayload(stkAaveRetrieval);
 
@@ -62,6 +61,11 @@ contract StkAaveRetrievalE2ETest is Test {
     }
 
     function testRetrieveNotBalancerMultisigPreProposal() public {
+        vm.expectRevert(bytes("Only Balancer Multisig"));
+        stkAaveRetrieval.retrieve();
+    }
+
+    function testRetrieveNotBalancerMultisigPostProposal() public {
         // Call retrieve() on StkAaveRetrieval contract without the Proposal being executed
         // the msg.sender will be this contract, which is NOT the balancer multisig
         GovHelpers.passVoteAndExecute(vm, proposalId);
@@ -89,13 +93,14 @@ contract StkAaveRetrievalE2ETest is Test {
         assertEq(STK_AAVE.balanceOf(balancerMultisig), 0, "BALANCER_MULTISIG_STK_AAVE_BALANCE_NOT_ZERO");
 
         // check initial aToken reward balances of Balancer DAO
-        uint256 before_balance_ADAI = wrapped_aDAI.getUnclaimedRewards(balancerDAO);
-        uint256 before_balance_AUSDC = wrapped_aUSDC.getUnclaimedRewards(balancerDAO);
-        uint256 before_balance_AUSDT = wrapped_aUSDT.getUnclaimedRewards(balancerDAO);
-        assertTrue(before_balance_ADAI > 0, "ZERO_WRAPPED_ADAI_REWARDS_INITIAL_BALANCE");
-        assertTrue(before_balance_AUSDC > 0, "ZERO_WRAPPED_AUSDC_REWARDS_INITIAL_BALANCE");
-        assertTrue(before_balance_AUSDT > 0, "ZERO_WRAPPED_AUSDT_REWARDS_INITIAL_BALANCE");
+        uint256 before_balance_ADAI = wrappedADAI.getUnclaimedRewards(balancerDAO);
+        uint256 before_balance_AUSDC = wrappedAUSDC.getUnclaimedRewards(balancerDAO);
+        uint256 before_balance_AUSDT = wrappedAUSDT.getUnclaimedRewards(balancerDAO);
+        assertTrue(before_balance_ADAI > 0, "ZERO_wrappedADAI_REWARDS_INITIAL_BALANCE");
+        assertTrue(before_balance_AUSDC > 0, "ZERO_wrappedAUSDC_REWARDS_INITIAL_BALANCE");
+        assertTrue(before_balance_AUSDT > 0, "ZERO_wrappedAUSDT_REWARDS_INITIAL_BALANCE");
 
+        uint256 expectedStkAAVEBalance = before_balance_ADAI + before_balance_AUSDC + before_balance_AUSDT;
         uint256 beforeStkAAVEBalance = STK_AAVE.balanceOf(balancerMultisig);
         // Mock as Balancer Multisig and call retrieve() on StkAaveRetrieval contract
         vm.prank(balancerMultisig);
@@ -103,11 +108,11 @@ contract StkAaveRetrievalE2ETest is Test {
 
         // check that stkAave balance is correct now
         uint256 afterStkAAVEBalance = STK_AAVE.balanceOf(balancerMultisig);
-        assertTrue(afterStkAAVEBalance > beforeStkAAVEBalance, "BALANCER_MULTISIG_STK_AAVE_BALANCE_UNCHANGED");
+        assertEq(afterStkAAVEBalance, expectedStkAAVEBalance, "BALANCER_MULTISIG_STK_AAVE_BALANCE_INCORRECT");
 
         // check final aToken reward balances of Balancer DAO - all should be zero
-        assertEq(wrapped_aDAI.getUnclaimedRewards(balancerDAO), 0, "INCORRECT_WRAPPED_ADAI_REWARDS_FINAL_BALANCE");
-        assertEq(wrapped_aUSDC.getUnclaimedRewards(balancerDAO), 0, "INCORRECT_WRAPPED_AUSDC_REWARDS_FINAL_BALANCE");
-        assertEq(wrapped_aUSDT.getUnclaimedRewards(balancerDAO), 0, "INCORRECT_WRAPPED_AUSDT_REWARDS_FINAL_BALANCE");
+        assertEq(wrappedADAI.getUnclaimedRewards(balancerDAO), 0, "INCORRECT_wrappedADAI_REWARDS_FINAL_BALANCE");
+        assertEq(wrappedAUSDC.getUnclaimedRewards(balancerDAO), 0, "INCORRECT_wrappedAUSDC_REWARDS_FINAL_BALANCE");
+        assertEq(wrappedAUSDT.getUnclaimedRewards(balancerDAO), 0, "INCORRECT_wrappedAUSDT_REWARDS_FINAL_BALANCE");
     }
 }
