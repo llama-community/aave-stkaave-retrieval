@@ -19,22 +19,18 @@ contract StkAaveRetrievalE2ETest is Test {
 
     uint256 public proposalId;
 
-    address[] private aaveWhales;
-
-    address private proposalPayloadAddress;
-
     StkAaveRetrieval private stkAaveRetrieval;
     ProposalPayload private proposalPayload;
 
     IERC20 STK_AAVE = IERC20(0x4da27a545c0c5B758a6BA100e3a049001de870f5);
 
-    address incentivesControllerAddr;
-    address balancerDAO;
-    address balancerMultisig;
+    address public incentivesControllerAddr;
+    address public balancerDAO;
+    address public balancerMultisig;
 
-    IStaticATokenLM wrapped_aDAI;
-    IStaticATokenLM wrapped_aUSDC;
-    IStaticATokenLM wrapped_aUSDT;
+    IStaticATokenLM public wrapped_aDAI;
+    IStaticATokenLM public wrapped_aUSDC;
+    IStaticATokenLM public wrapped_aUSDT;
 
     function setUp() public {
         // To fork at a specific block: vm.createSelectFork(vm.rpcUrl("mainnet", BLOCK_NUMBER));
