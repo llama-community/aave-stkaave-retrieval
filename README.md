@@ -1,6 +1,14 @@
-# AAVE Governance Forge Template
+# StkAAVE Retrieval for Balancer
 
-A template for creating AAVE governance Proposal payload contracts.
+Payload, retrieval contract,and tests
+
+## Speciication
+This proposal payload sets the claimer of the Balancer DAO contract's stkAAVE rewards to be the retrieval contract.
+
+The retrieval contract does the following:
+1) It is called by the Balancer Multisig
+2) It claims the stkAAVE rewards on behalf of the Balancer DAO contract from aDAI, aUSDC, and aUSDT
+3) It transfers the stkAAVE rewards to the Balancer Multisig
 
 ## Installation
 

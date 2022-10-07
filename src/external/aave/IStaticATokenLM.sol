@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.15;
 
-// relevant functiona from https://etherscan.io/address/0x1dc16f168b0a2bb3fbda0fe1a1787f8b22c0aed8#code
+// relevant functions from https://etherscan.io/address/0x1dc16f168b0a2bb3fbda0fe1a1787f8b22c0aed8#code
 
 interface IStaticATokenLM {
     /**

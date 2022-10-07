@@ -67,9 +67,8 @@ contract StkAaveRetrievalE2ETest is Test {
     }
 
     function testRetrieveNotBalancerMultisigPostProposal() public {
-        // Call retrieve() on StkAaveRetrieval contract without the Proposal being executed
-        // the msg.sender will be this contract, which is NOT the balancer multisig
         GovHelpers.passVoteAndExecute(vm, proposalId);
+        // the msg.sender will be this contract not the multisig
         vm.expectRevert(bytes("Only Balancer Multisig"));
         stkAaveRetrieval.retrieve();
     }
@@ -97,18 +96,32 @@ contract StkAaveRetrievalE2ETest is Test {
         uint256 beforeBalanceADAI = wrappedADAI.getUnclaimedRewards(balancerDAO);
         uint256 beforeBalanceAUSDC = wrappedAUSDC.getUnclaimedRewards(balancerDAO);
         uint256 beforeBalanceAUSDT = wrappedAUSDT.getUnclaimedRewards(balancerDAO);
-        assertTrue(beforeBalanceADAI > 0, "ZERO_wrappedADAI_REWARDS_INITIAL_BALANCE");
-        assertTrue(beforeBalanceAUSDC > 0, "ZERO_wrappedAUSDC_REWARDS_INITIAL_BALANCE");
-        assertTrue(beforeBalanceAUSDT > 0, "ZERO_wrappedAUSDT_REWARDS_INITIAL_BALANCE");
+        uint256 expectedBeforeBalanceADAI = 507223394753535214703;
+        uint256 expectedBeforeBalanceAUSDC = 601800814685127542984;
+        uint256 expectedBeforeBalanceAUSDT = 390825845735555687901;
+        assertEq(beforeBalanceADAI, expectedBeforeBalanceADAI, "INCORRECT_WRAPPED_ADAI_REWARDS_INITIAL_BALANCE");
+        assertEq(beforeBalanceAUSDC, expectedBeforeBalanceAUSDC, "INCORRECT_WRAPPED_AUSDC_REWARDS_INITIAL_BALANCE");
+        assertEq(beforeBalanceAUSDT, expectedBeforeBalanceAUSDT, "INCORRECT_WRAPPED_AUSDT_REWARDS_INITIAL_BALANCE");
 
-        uint256 expectedStkAAVEBalance = beforeBalanceADAI + beforeBalanceAUSDC + beforeBalanceAUSDT;
+        uint256 totalClaimableStkAAVEBalance = beforeBalanceADAI + beforeBalanceAUSDC + beforeBalanceAUSDT;
+        uint256 expectedTotalClaimableStkAaveBalance = 1499850055174218445588;
+        assertEq(
+            totalClaimableStkAAVEBalance,
+            expectedTotalClaimableStkAaveBalance,
+            "INCORRECT_TOTAL_CLAIMABLE_STK_AAVE_BALANCE"
+        );
+
         // Mock as Balancer Multisig and call retrieve() on StkAaveRetrieval contract
         vm.prank(balancerMultisig);
         stkAaveRetrieval.retrieve();
 
         // check that stkAave balance is correct now
         uint256 afterStkAAVEBalance = STK_AAVE.balanceOf(balancerMultisig);
-        assertEq(afterStkAAVEBalance, expectedStkAAVEBalance, "BALANCER_MULTISIG_STK_AAVE_BALANCE_INCORRECT");
+        assertEq(
+            afterStkAAVEBalance,
+            expectedTotalClaimableStkAaveBalance,
+            "BALANCER_MULTISIG_STK_AAVE_BALANCE_INCORRECT"
+        );
 
         // check final aToken reward balances of Balancer DAO - all should be zero
         assertEq(wrappedADAI.getUnclaimedRewards(balancerDAO), 0, "INCORRECT_wrappedADAI_REWARDS_FINAL_BALANCE");

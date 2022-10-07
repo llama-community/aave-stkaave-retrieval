@@ -1,14 +1,19 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: AGPL-3.0-only 
 pragma solidity ^0.8.15;
 
 import "./external/aave/IStaticATokenLM.sol";
 import "./external/aave/IAaveIncentivesController.sol";
 
-/// @title StkAaveRetrieval
-/// @author Llama
-/// @notice This contract is used to claim stkAave rewards on behalf of the Balancer DAO contract and send those funds to their multisig
-/// @notice Aave proposal to whitelist this contract: https://governance.aave.com/t/arc-whitelist-balancer-s-liquidity-mining-claim/9724
-/// @dev The Balancer Multisig should call retrieve
+
+/**
+ * @title StkAaveRetrieval
+ * @author Llama
+ * @notice This contract is used to claim stkAave rewards on behalf of the Balancer DAO contract
+ * @notice It sends those funds to the Balancer Multisig
+ * @notice Aave proposal to whitelist this contract: 
+ * @notice https://governance.aave.com/t/arc-whitelist-balancer-s-liquidity-mining-claim/9724
+ * @dev The Balancer Multisig should call retrieve()
+ */
 contract StkAaveRetrieval {
     /// @dev this is msg.sender
     address public constant BALANCER_MULTISIG = 0x10A19e7eE7d7F8a52822f6817de8ea18204F2e4f;
@@ -25,8 +30,10 @@ contract StkAaveRetrieval {
     address public constant WRAPPED_AUSDT = 0xf8Fd466F12e236f4c96F7Cce6c79EAdB819abF58;
     address[] public WRAPPED_TOKENS = [WRAPPED_ADAI, WRAPPED_AUSDC, WRAPPED_AUSDT];
 
-    /// @dev This is the core function. We check that only the multisig can execute this and that proper whitelisting has been set up.
-    /// @notice We call this function to claim the rewards and send them to the multisig
+    /**
+     * @dev This is the core function. We check that only the multisig can execute this and that proper whitelisting has been set up.
+     * @notice We call this function to claim the rewards and send them to the multisig
+     */
     function retrieve() external {
         require(msg.sender == BALANCER_MULTISIG, "Only Balancer Multisig");
         require(
