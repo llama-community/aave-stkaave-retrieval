@@ -1,16 +1,15 @@
-// SPDX-License-Identifier: AGPL-3.0-only 
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.15;
 
 import "./external/aave/IStaticATokenLM.sol";
 import "./external/aave/IAaveIncentivesController.sol";
-
 
 /**
  * @title StkAaveRetrieval
  * @author Llama
  * @notice This contract is used to claim stkAave rewards on behalf of the Balancer DAO contract
  * @notice It sends those funds to the Balancer Multisig
- * @notice Aave proposal to whitelist this contract: 
+ * @notice Aave proposal to whitelist this contract:
  * @notice https://governance.aave.com/t/arc-whitelist-balancer-s-liquidity-mining-claim/9724
  * @dev The Balancer Multisig should call retrieve()
  */

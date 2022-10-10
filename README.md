@@ -3,41 +3,26 @@
 Payload, retrieval contract,and tests
 
 ## Speciication
+
 This proposal payload sets the claimer of the Balancer DAO contract's stkAAVE rewards to be the retrieval contract.
 
 The retrieval contract does the following:
-1) It is called by the Balancer Multisig
-2) It claims the stkAAVE rewards on behalf of the Balancer DAO contract from aDAI, aUSDC, and aUSDT
-3) It transfers the stkAAVE rewards to the Balancer Multisig
+
+1. It is called by the Balancer Multisig
+2. It claims the stkAAVE rewards on behalf of the Balancer DAO contract from aDAI, aUSDC, and aUSDT
+3. It transfers the stkAAVE rewards to the Balancer Multisig
 
 ## Installation
 
 It requires [Foundry](https://github.com/gakonst/foundry) installed to run. You can find instructions here [Foundry installation](https://github.com/gakonst/foundry#installation).
 
-### GitHub template
-
-It's easiest to start a new project by clicking the ["Use this template"](https://github.com/llama-community/aave-governance-forge-template).
-
-Then clone the templated repository locally and `cd` into it and run the following commands:
+To install, run the following commands:
 
 ```sh
+$ git clone https://github.com/llama-community/aave-stkaave-retrieval.git
+$ cd aave-stkaave-retrieval/
 $ npm install
 $ forge install
-$ forge update
-$ git submodule update --init --recursive
-```
-
-### Manual installation
-
-If you want to create your project manually, run the following commands:
-
-```sh
-$ forge init --template https://github.com/llama-community/aave-governance-forge-template <my-repo>
-$ cd <my-repo>
-$ npm install
-$ forge install
-$ forge update
-$ git submodule update --init --recursive
 ```
 
 ## Setup
@@ -60,7 +45,3 @@ Duplicate `.env.example` and rename to `.env`:
 - `make deploy-proposal`- deploy proposal on mainnet
 
 To confirm the deploy was successful, re-run your test suite but use the newly created contract address.
-
-## Acknowledgements
-
-- [Steven Valeri](https://github.com/stevenvaleri/): Re-wrote AAVE's governance process tests in solidity.
